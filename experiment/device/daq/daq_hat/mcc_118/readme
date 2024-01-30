@@ -1,0 +1,25 @@
+The MCC118 is a data acquisition addition to the raspberry pi. The drivers and C-API and Python-API can be found on
+github (https://github.com/mccdaq/daqhats).
+Follow the instructions there to install their package.
+
+The files provided here transform the raspberry pi into a data server which can be operated and queried from a client.
+
+To obtain this run the daq_server as a service on the raspberry pi and connect with it via the client script.
+
+Instruction on how to setup the daq_server service on the raspberry pi:
+
+1) sudo nano /lib/systemd/system/daq-server.service
+
+use the content from the daq-server.service in the current directory. Depending on where your python script is located
+on the raspberry pi you might have to adjust the script accordingly.
+
+2) Modify permissions and enable service
+
+sudo chmod 644 /lib/systemd/system/daq-server.service
+chmod +x /home/pi/Documents/daq_server.py
+sudo systemctl daemon-reload
+sudo systemctl enable daq-server.service
+sudo systemctl start daq-server.service
+
+[3) Modify service-file. Every time after modification execute:
+sudo systemctl daemon-reload]

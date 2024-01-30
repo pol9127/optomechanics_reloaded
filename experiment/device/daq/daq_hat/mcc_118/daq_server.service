@@ -1,0 +1,11 @@
+[Unit]
+Description=Communicates with the daqhat mc118 and sends data via tcp to clients.
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/pi/Documents/daq_server.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
