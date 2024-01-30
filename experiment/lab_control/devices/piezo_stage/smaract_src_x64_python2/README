@@ -1,0 +1,21 @@
+To compile the Gage Python library follow the following steps:
+
+1. Make sure the Microsoft Visual C++ Compiler for Python 2.7 is
+   installed.
+   (https://www.microsoft.com/en-us/download/details.aspx?id=44266)
+
+2. Launch the appropriate Visual C++ 2008 Command Prompt (32/64 bit).
+
+3. Set the environment variables by typing:
+        SET DISTUTILS_USE_SDK=1
+        SET MSSdk=1
+
+4. Run python_gage_setup.bat.
+
+http://stackoverflow.com/questions/26140192/microsoft-visual-c-compiler-for-python-2-7
+
+gage = devices['GaGe_default']
+sm = devices['SmarAct_default']
+meander = sm.meander3d([-50,50],[-50,50],[-50,50],3,3,3)
+
+sm.move_relative_sequence3d(meander[0], gage.inner.single_shot)
