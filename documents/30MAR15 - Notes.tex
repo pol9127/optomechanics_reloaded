@@ -1,0 +1,101 @@
+\documentclass[a4paper,11pt,fleqn,english]{amsart}
+
+\usepackage{textcomp}
+\usepackage[dvips,margin=1.0in,top=1.0in,bottom=1.0in]{geometry}
+\usepackage{epsf, epsfig, changebar}
+\usepackage{epstopdf}
+\usepackage{amstext, times}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[multidot]{grffile}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{wrapfig,lipsum,booktabs}
+\usepackage[page]{appendix}
+% \numberwithin{equation}{section}
+
+% Redefining MnSymbol commands
+\newcommand{\vv}[1]{\vec{\mathbf{#1}}}  % for vectors
+\newcommand{\tensor}[1]{\overleftrightarrow{\mathrm{#1}}}  % for tensors
+\newcommand{\uv}[1]{\ensuremath{\mathbf{\hat{#1}}}} % for unit vector
+\def\bal#1\eal{\begin{align}#1\end{align}}
+\newcommand{\ket}[1]{\left| #1 \right>} % for Dirac bras
+\newcommand{\bra}[1]{\left< #1 \right|} % for Dirac kets
+\newcommand{\avg}[1]{\left< #1 \right>} % for average
+
+% Inserting code snippets
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Levitating Nanoparticle : \\ Program Development \& Standardization}
+\author{Erik Hebestreit \& Vijay Jain}
+
+\begin{document}
+\maketitle
+
+\vspace{-0.75cm}
+
+\subsection{{Motivation}} Owing to the complexities resulting from different data formats, different analysis tools, and the interest in extracting more information from collected data, we are working to standardize our data collection and analysis and develop new tools for studying the levitating nano-particles. Here, we outline our current progress and future goals.
+
+\section{Current Tools}
+\subsection{Time Traces} Every time trace consists of three columns corresponding to data from each detector sampled at the same time. We currently use \texttt{.csv} format but plan to switch to the \texttt{HDF5} (binary) format. Each time trace has an additional parameter file that lists the sampling rate, number of samples, and timestamp. The time traces are stored as raw data from the ADC and not converted to values in Volts; this is done to avoid rounding and division errors.
+
+\subsection{Processing} Different programming environments exist for processing our data sets. We are setting \texttt{Python} as our standard.
+
+\subsubsection{Power Spectral Densities} With \texttt{Python}, we first compute a composite, single-sided power spectral density of a set of time traces using \texttt{fft}. Then, the PSD is fit with a Lorentzian using \texttt{curve-fit}. The fitting is done on a logarithmic scale to minimize errors from the least-squares algorithm. Components of the code are illustrated below.
+
+\begin{lstlisting}
+	# First, compute a power-spectral density.
+	psd = abs(np.fft.fft(data[axM,:]))[0:l/2]**2
+	# Then, fit the PSD with a Lorentzian using a least-squares algorithm.
+	popt, pcov = curve_fit(lorentzian, fr[zmin:zmax], np.log10(fDat[zmin:zmax]), p0)
+	def lorentzian(x, a, b, c, d):
+		return np.log10((a/( (x**2 - b**2)**2 + (c*x)**2 )) + d)
+\end{lstlisting}
+
+The fit returns four parameters. The parameters \texttt{a} and \texttt{c} are used to compute the relative temperature change and \texttt{b} is the oscillation frequency. \texttt{d} is used to estimate the noise floor and is important in correctly fitting the Lorentzian over a broad range.
+
+The fit parameters can be determined by either fitting each PSD and then computing a mean or fitting a composite PSD. In the latter case, the slight drift of the peak frequency may broaden the fit estimates.
+
+\subsubsection{Energy vs. Time} To determine the intrinsic damping, the particle is released from feedback at multiple pressures for a given amount of time. The time traces are used to compute a mean energy versus time from which the reheating rate, or intrinsic damping, is calculated. The program first imports time traces, calculates PSDs in a 2~msec interval, and then numerically integrates the PSD in a fixed bandwidth of frequencies (typically 10~kHz). The script then averages the energy change over multiple traces and outputs the mean energy versus time in all three dimensions.
+
+An example of the energy calculation for the X axis is shown below.
+
+\begin{lstlisting}
+	def fEnergyX(data, r, j):
+		fDat = abs(np.fft.fft(data[(r*j):(r*(j+1)-1)]))[0:r/2]**2
+		minF = int((r*100/312.5)/2)
+		maxF = int((r*115/312.5)/2)
+		return np.sum(fDat[minF:maxF])/r
+\end{lstlisting}
+
+\section{Goals}
+
+\subsection{Standardization} A major goal is to standardize programs that we may use for data analysis. This includes the data format for the time traces, or \texttt{HDF5}, analysis programs, and calls from within scripts. The idea is that anyone could use the program and the time trace and calculate the same values with ease.
+
+The \texttt{HDF5} time trace would consist of a group of traces and also include metadata, including a timestamp, sampling rate, reads, elements, and pressure.
+
+\subsection{Development} We would also like to expand the tools and measurements available to us. For instance, a set of mechanical parameters, including force fields and the path-dependent work, would help us better observe the behavior of the particle. A set of thermodynamic parameters, including entropy, free energy, and work, would benefit our understanding of the energetics of the particle's motion. Further, digital filters for filtering out crosstalk signals and high-frequency signals would refine our position distributions.
+
+\end{document}

@@ -1,0 +1,95 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\author{Erik Hebestreit}
+\title{Calibration of Measurement Data}
+\begin{document}
+	\maketitle
+	
+	We are measuring the position of the particle in terms of voltages or Bit values ($v(t)$). From there we derive the single-sided power spectral density using the discrete Fourier transform as
+	\begin{equation}
+		\tilde{S}(f)=\frac{N}{f_s}\tilde{v}^2(f)=\frac{N}{f_s}\left|\frac{1}{N}\mathfrak{F}_f[v(t)]\right|^2\cdot\begin{cases}
+		2 & f>0\\
+		1 & f=0\\
+		0 & f<0
+		\end{cases}.
+	\end{equation}
+	where $N$ is the number of elements in the time trace $v(t)$, $f_s$ is the sampling frequency, and $\mathfrak{F}_f$ is the output of the Python function \texttt{numpy.fft.fft} (or the \texttt{fft} function in Matlab). The term $\tilde{v}(f)$ is the real valued normalized Fourier transform in units of $\mathrm{V}$ or $\mathrm{Bit}$ for positive frequencies only~\cite{Gehrcke2009}. The square of $\tilde{v}(f)$ gives the power spectrum and if we divide this by the frequency spacing $\Delta f=f_s/N$, we arrive with the power spectral density. The unit of $\tilde{S}(f)$ is $\mathrm{V}^2/\mathrm{Hz}$, or $\mathrm{Bit}^2/\mathrm{Hz}$, respectively. This is also what the \texttt{welch} function in the \texttt{scipy.signal} module derives, but this function offers sophisticated windowing to avoid spectral leakage and is the preferred method\footnote{Both methods (FFT and Welch) are implemented in the \texttt{derive\_psd} function and should return values with the same scaling.}.
+	
+	We also know from theory that the (double-sided) power spectral density (in $\Omega$ space with $\Omega=2\pi\cdot f$) in units of $\mathrm{m}^2/\mathrm{Hz}$ looks like~\cite{Gieseler2014}
+	\begin{equation}\label{eq:psd_omega}
+		S(\Omega)=\frac{c_\text{calib}^2\frac{k_BT}{\pi m}\Gamma_0}{[\Omega_0^2-\Omega^2]^2+\Gamma_0^2\Omega^2} = \frac{a_1}{[a_3^2-\Omega^2]^2+a_2^2\Omega^2}.
+	\end{equation}
+	
+	The plan is now to relate $\tilde{S}(f)$ to $S(\Omega)$ and determine the calibration factor $c_\text{calib}$ for the measured data. Using this factor we can convert the measurement values $v(t)$ to actual particle positions $x(t)=v(t)/c_\text{calib}$. It should not depend on the frequency space chosen.
+	
+	\paragraph{From Frequencies to Angular Frequencies.}
+	We know that the energy in a certain frequency interval is given by $S(\Omega)\mathrm{d}\Omega$ and that this energy should not depend on the choice of the frequency space. Therefore single-sided and double-sided PSD are related by
+	\begin{equation}
+		\tilde{S}(f)\,\mathrm{d}f = S(\Omega)\,\mathrm{d}\Omega\cdot\begin{cases}
+		2 & f>0\\
+		1 & f=0\\
+		0 & f<0
+		\end{cases}.
+	\end{equation}
+	and with $\mathrm{d}\Omega=2\pi\mathrm{d}f$ we conclude\footnote{From now on, we don't explicitly write down the case $f=0$ anymore.}
+	\begin{equation}
+		\tilde{S}(f) = 4\pi S(\Omega \geq 0).
+	\end{equation}
+	
+	\paragraph{Derive Calibration Factor.}
+	From eq.\ \ref{eq:psd_omega} we derive with $a_2=\Gamma_0$ the conversion factor in units of $\mathrm{V}/\mathrm{m}$, or $\mathrm{Bit}/\mathrm{m}$ respectively as
+	\begin{equation}
+		a_1 = c_\text{calib}^2\frac{k_BT}{\pi m}\Gamma_0 \qquad\rightarrow\qquad c_\text{calib} = \sqrt{\frac{a_1}{a_2}\frac{\pi m}{k_BT}}.
+	\end{equation}
+	
+	Considering a conversion factor $\alpha$ we do the same for $\tilde{S}(f)$
+	\begin{equation}
+		\tilde{S}(f)=\frac{\alpha^2c_\text{calib}^2\frac{k_BT}{\pi m}g_0}{[f_0^2-f^2]^2+g_0^2f^2} = \frac{\tilde{a}_1}{[\tilde{a}_3^2-f^2]^2+\tilde{a}_2^2f^2},
+	\end{equation}
+	where $\Omega=2\pi f$ and $\Gamma_0=2\pi g_0$. Accordingly we derive
+	\begin{align}
+		\tilde{S}(f) &= \frac{\alpha^2c_\text{calib}^2\frac{k_BT}{\pi m}g_0}{[f_0^2-f^2]^2+g_0^2f^2} = \frac{\alpha^2c_\text{calib}^2\frac{k_BT}{\pi m}\frac{\Gamma_0}{2\pi}}{\left[\frac{\Omega_0^2}{(2\pi)^2}-\frac{\Omega^2}{(2\pi)^2}\right]^2+\frac{\Gamma_0^2}{(2\pi)^2}\frac{\Omega^2}{(2\pi)^2}}\\
+		&=\alpha^2\frac{c_\text{calib}^2\frac{k_BT}{\pi m}\Gamma_0}{[\Omega_0^2-\Omega^2]^2+\Gamma_0^2\Omega^2}(2\pi)^3 =\alpha^2 S(\Omega) (2\pi)^3 = \alpha^2 \tilde{S}(f) \frac{(2\pi)^2}{2}.
+	\end{align}
+	Therefore $\alpha=\sqrt{2}(2\pi)^{-1}$ and with $\tilde{a}_2=g_0$ we derive the calibration factor again as
+	\begin{equation}
+		\tilde{a}_1 = \alpha^2c_\text{calib}^2\frac{k_BT}{\pi m}g_0 \qquad\rightarrow\qquad c_\text{calib} = \frac{1}{\alpha}\sqrt{\frac{\tilde{a}_1}{\tilde{a}_2}\frac{\pi m}{k_BT}} = 2\pi\sqrt{\frac{\tilde{a}_1}{2\tilde{a}_2}\frac{\pi m}{k_BT}}.
+	\end{equation}
+	
+	Using these relations we are able to derive all relevant quantities from the PSD in $f$-frequency space similar to as they are described in \cite{Gieseler2014}:
+	
+	\paragraph{Particle Size.}
+	For the derivation of the particle radius we can write
+	\begin{equation}
+		a = 0.619\frac{9\pi}{\sqrt{2}}\frac{\eta d_m^2}{\rho_\mathrm{SiO_2}k_BT}\frac{P_\text{gas}}{\Gamma_0} = 0.619\frac{9\pi}{\sqrt{2}}\frac{\eta d_m^2}{\rho_\mathrm{SiO_2}k_BT}\frac{P_\text{gas}}{2\pi g_0}.
+	\end{equation}
+	The mass is then given as $m=4\pi\rho_\mathrm{SiO_2}a^3/3$. The constants are $\eta=18.27\times10^{-6}\,\mathrm{Pa\ s}$, $d_m=0.372\,\mathrm{nm}$ and $\rho_\mathrm{SiO_2}=2200\mathrm{kg/m^3}$.
+	
+	\paragraph{Effective Temperature.}
+	To compare different particle energies we often use the effective temperature $T_\text{eff}$, which can be derived by (details in~\cite{Gieseler2014})
+	\begin{equation}
+	T_\text{eff}=T_0\frac{R^\text{(FB)}}{R^\text{(calib)}},
+	\end{equation}
+	where $R=a_1/a_2=\alpha^{-2}\tilde{a}_1/\tilde{a}_2$ and the superscripts indicate measurements with feedback and without (for calibration).
+	
+	\paragraph{Natural Damping Rate.}
+	The natural damping rate can be deduced for measurements under feedback as
+	\begin{equation}
+		\Gamma_0=\frac{a_1^\text{(FB)}}{R^\text{(calib)}}=\frac{2\pi}{\alpha^2}\frac{\tilde{a}_1^\text{(FB)}}{R^\text{(calib)}}.
+	\end{equation}
+	
+	\paragraph{Conventions.}
+	\begin{itemize}
+		\item We always want to use the calibration factors $c_\text{calib}$ and $R$ such that it fits the definitions in this manuscript and in \cite{Gieseler2014}.
+		\item For data processing we will work in $f$-frequency space.
+		\item When referring to oscillation frequencies and damping rates we write e.g.\ $\Omega_x=2\pi\cdot 110\,\mathrm{kHz}$ or $\Gamma_0=2\pi\cdot 100\,\mathrm{mHz}$.
+		\item Mechanical frequencies are indicated by $\Omega$, optical frequencies by $\omega$.
+		\item Mechanical damping rates are indicated by $\Gamma$, optical line widths by $\gamma$.
+	\end{itemize}
+	
+	\bibliography{calibration_lib}
+	\bibliographystyle{ieeetr}
+\end{document}
