@@ -1,0 +1,239 @@
+import paramiko as pa
+import time
+import os
+
+class cold_damp_filter_ctrl(object):
+    def __init__(self, HOSTNAME = 'red-pitaya-02.ee.ethz.ch', USERNAME = 'root', PASSWORD = 'root'):
+        ## SSH setup
+
+        self.client = pa.SSHClient()
+        self.client.set_missing_host_key_policy(pa.AutoAddPolicy())
+        self.client.load_system_host_keys()
+        self.client.connect(HOSTNAME, username=USERNAME, password=PASSWORD)
+        
+        self.BITFILENAME = 'biquad_x6.bit'
+        self.BITFILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.BITFILENAME)
+        
+        self.fs = 125e6/128
+        
+    def __del__(self):
+        self.client.close()
+        print('closed')
+        
+    def read_reg(self, addr):
+        tmp = self.client.exec_command('/opt/redpitaya/bin/monitor ' + str(addr))[1].read().strip()
+        return int(tmp.split(b'x')[1], 16)
+    
+    def set_reg(self, addr, val):
+        command = '/opt/redpitaya/bin/monitor {0} {1}'.format(str(addr), str(val))
+        stdin, stdout, stderr = self.client.exec_command(command)
+        time.sleep(0.1)
+
+    ## Load bitfile
+    def load_bitfile(self):
+        #create temporary folder without overwriting anything
+        tmp_folder = 'ftp_tmp'
+        folders = str(self.client.exec_command('ls')[1].read())[2:-1].split('\\n')
+        while(tmp_folder in folders):
+            tmp_folder += '0'
+        print(tmp_folder)
+        self.client.exec_command('mkdir ' + tmp_folder);
+
+        time.sleep(0.5)
+
+        #copy bitfile into the new folder
+        ftp_client = self.client.open_sftp()
+        ftp_client.put(self.BITFILE, tmp_folder + '/' + self.BITFILENAME)
+        ftp_client.close()
+
+        time.sleep(0.5)
+
+        #configure device with bitfile
+        self.client.exec_command('cat ' + tmp_folder + '/' + self.BITFILENAME + '> /dev/xdevcfg');
+
+        time.sleep(0.5)
+
+        #delete temporary folder
+        self.client.exec_command('rm -rf ' + tmp_folder) ;
+
+        time.sleep(0.5)
+        
+        print('Bitfile Loaded')
+        
+    def bit_inverse(self, value, n):
+        return 2**n-value-1
+        
+        
+    def set_amplifier_gain(self, gain_db):
+        if gain_db in [10,20,30,40,50,60]:
+            setting = int((gain_db-10)/10*256)
+            mask = (7 << 8)
+            addr = 0x43000000
+            reg = self.read_reg(addr)
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            print("Invalid input. Allowed are (10/20/30/40/50/60)")
+            
+    def set_attenuator(self, attenuation_db, att=36):  
+        if attenuation_db in [0, att]:
+            addr = 0x43000000
+            reg = self.read_reg(addr)
+            mask = (1 << 12)
+            tmp = (mask&(int(1-attenuation_db/att) << 12)) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            raise Exception("Invalid input. Allowed are (0 or 36)")
+
+
+    def command_set_switch(self, state):
+        if state in ['open', 'RF1', 'RF2']:
+            addr = 0x43000000
+            reg = self.read_reg(addr)
+            mask = (3 << 13) + 1 #bit 13 switches, bit 1 is for monitoring the switching
+            setting = 0
+            if state == 'RF1':
+                setting = (1 << 13) + 1 #bit1: 1 if RF1, else 0
+            elif state == 'RF2':
+                setting = 2 << 13
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            return addr, tmp
+        else: 
+            print("Invalid input. Allowed are ('open'/'RF1'/'RF2')")
+            return None, None
+
+    def set_switch(self, state):
+        addr, val = self.command_set_switch(state)
+        if addr:
+            self.set_reg(addr, val)
+
+    def toggle_switch(self, n, t_RF1, t_RF2):
+        command = 'for i in {1..%i}; do ' % n
+        addr, val = self.command_set_switch('RF1')
+        command += '/opt/redpitaya/bin/monitor {0} {1}'.format(str(addr), str(val))
+        command += ' && sleep %f && ' % t_RF1
+        addr, val = self.command_set_switch('RF2')
+        command += '/opt/redpitaya/bin/monitor {0} {1}'.format(str(addr), str(val))
+        command += ' && sleep %f ' % t_RF2
+        command += ' ; done'
+
+        stdin, stdout, stderr = self.client.exec_command(command)
+        time.sleep(0.1)
+        
+        
+    def set_delay_raw(self, delay_raw):
+        if delay_raw in range(32):
+            addr = 0x42000000
+            reg = self.read_reg(addr)
+            mask = (31 << 17)
+            setting = delay_raw << 17
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            print("Invalid input. Allowed are (0..31)")
+            
+    def set_delay_fine(self, delay_fine):
+        if delay_fine in range(32):
+            addr = 0x42000000
+            reg = self.read_reg(addr)
+            mask = (31 << 10)
+            setting = delay_fine << 10
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            print("Invalid input. Allowed are (0..31)")
+            
+    def set_input(self, inp):
+        if inp in [1,2]:
+            addr = 0x42000000
+            reg = self.read_reg(addr)
+            mask = 1 << 15
+            setting = ((2-inp) << 15)
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            print("Invalid input. Allowed are (1/2)")
+
+    def set_output(self, outp, connection):
+        connections = {'input':2, 'delay':4, 'biquad1':0, 'biquad2':3, 'biquad3':5, 'biquad4':6, 'biquad5':1, 'biquad6':7}
+        if outp in [1,2] and connection in connections:
+            addr = 0x42000000
+            reg = self.read_reg(addr)
+            mask = 7 << ((outp-1)*3)
+            setting = connections[connection] << ((outp-1)*3)
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        else: 
+            print("Invalid input. Allowed are (1/2, 'input'/'delay'/'biquad1'/'biquad2'/'biquad3'/'biquad4'/'biquad5'/'biquad6')")
+
+    def reset_and_start(self):
+        addr = 0x42000000
+        reg = self.read_reg(addr)
+        mask = 1 << 31
+        setting = 0 << 31
+        tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+        self.set_reg(addr, tmp)
+        time.sleep(0.1)
+        setting = 1 << 31
+        tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+        self.set_reg(addr, tmp)
+        
+    def configure_biquad(self, index, a0, a1, a2, b1, b2):
+        if index-1 in range(6):
+            baseaddr = 0x40000000 + (index+1) * 0x1000000
+            factor = 2**23
+            self.set_reg(baseaddr + 0x000008, factor*a0)
+            self.set_reg(baseaddr + 0x100000, factor*a1)
+            self.set_reg(baseaddr + 0x100008, factor*a2)
+            self.set_reg(baseaddr + 0x200000, factor*b1)
+            self.set_reg(baseaddr + 0x200008, factor*b2)
+
+
+class MsquController(cold_damp_filter_ctrl):
+    """
+    Child class of the cold_damp_filter_ctrl, basically it just overwrites the
+    methods that need to be adapted for the mechanical squeezing protocol.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.BITFILENAME = 'msqu.bit'
+        self.BITFILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.BITFILENAME)
+
+    def set_output(self, outp, connection):
+        connections = {'input':2, 'delay':4, 'biquad1':0, 'biquad2':3,
+                       'biquad3':5, 'biquad4':6, 'biquad5':1, 'indicator':7}
+        if outp in [1,2] and connection in connections:
+            addr = 0x42000000
+            reg = self.read_reg(addr)
+            mask = 7 << ((outp-1)*3)
+            setting = connections[connection] << ((outp-1)*3)
+            tmp = (mask&setting) + (self.bit_inverse(mask, 32) & reg)
+            self.set_reg(addr, tmp)
+        return self
+
+    def configure_biquad(self, index, a0, a1, a2, b1, b2):
+        if index-1 in range(5):
+            baseaddr = 0x40000000 + (index+1) * 0x1000000
+            factor = 2**23
+            self.set_reg(baseaddr + 0x000008, factor*a0)
+            self.set_reg(baseaddr + 0x100000, factor*a1)
+            self.set_reg(baseaddr + 0x100008, factor*a2)
+            self.set_reg(baseaddr + 0x200000, factor*b1)
+            self.set_reg(baseaddr + 0x200008, factor*b2)
+        else:
+            raise Exception('Only 5 biquad filters are available.')
+        return self
+
+    def verification_duration(self, duration):
+        """
+        The duration should be given as float, measured in seconds.
+        """
+        local_fs = 125e6/4
+        max_duration = (2**32-1) * local_fs
+        if not 0 <= duration <= max_duration:
+            raise Exception('duration parameter is out of the range allowed.')
+        else:
+            baseaddr = 0x47000000
+            duration_bits = int(local_fs*duration)
+            self.set_reg(baseaddr, duration_bits)
+        return self
