@@ -1,0 +1,86 @@
+; CH375WDM.INF
+; Driver for CH372/CH375 (USB chip) V2.4
+; WDM/DLL for Windows 98/Me/2000/XP
+; Copyright (C) W.ch 2001-2005
+;
+
+[Version]
+Signature = "$Chicago$"
+Class     = WCH
+ClassGuid = {77989ADF-06DB-4025-92E8-40D902C03B0A}
+Provider  = %WinChipHead%
+DriverVer = 12/15/2005, 2.4.2005.12
+
+[ControlFlags]
+ExcludeFromSelect = USB\VID_4348&PID_5537, USB\VID_4348&PID_55E0
+
+[ClassInstall32]
+Addreg = WCHReg
+
+[ClassInstall]
+Addreg = WCHReg
+
+[WCHReg]
+HKR, , , 0, %ClassName%
+HKR, , Icon, , -5
+HKR, , NoInstallClass, , 1
+
+[Manufacturer]
+%WinChipHead% = WinChipHead
+
+[WinChipHead]
+%CH375.DeviceDesc% = CH375.Install, USB\VID_4348&PID_5537
+%CH37XICP.DeviceDesc% = CH375.Install, USB\VID_4348&PID_55E0
+
+[CH375.Install]
+CopyFiles = CH375.CopyFiles.SYS, CH375.CopyFiles.DLL
+AddReg    = CH375.9X.AddReg, CH375.AddReg
+
+[CH375.Install.NT]
+CopyFiles = CH375.CopyFiles.SYS, CH375.CopyFiles.DLL
+AddReg    = CH375.NT.AddReg, CH375.AddReg
+
+[CH375.CopyFiles.SYS]
+CH375WDM.SYS, , , 2
+
+[CH375.CopyFiles.DLL]
+CH375DLL.DLL, , , 2
+
+[CH375.9X.AddReg]
+HKR, , DevLoader, , *NTKERN
+HKR, , NTMPDriver, , CH375WDM.SYS
+
+[CH375.NT.AddReg]
+
+[CH375.AddReg]
+HKLM, SOFTWARE\WinChipHead\IC\CH375, WDM, 0x00010001, 0x00000024
+HKLM, SOFTWARE\WinChipHead\IC\CH375, DLL, 0x00010001, 0x00000022
+HKLM, SOFTWARE\WinChipHead\IC\CH375, Function, , "USB slave"
+
+[CH375.Install.NT.Services]
+AddService = CH375, 2, CH375.Service
+
+[CH375.Service]
+DisplayName   = "CH375WDM"
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %10%\System32\Drivers\CH375WDM.SYS
+
+[DestinationDirs]
+DefaultDestDir      = 10, System32\Drivers
+CH375.CopyFiles.SYS = 10, System32\Drivers
+CH375.CopyFiles.DLL = 11
+
+[SourceDisksFiles]
+CH375WDM.SYS  = 1
+CH375DLL.DLL  = 1
+
+[SourceDisksNames]
+1 = "CH372/CH375 Installation Disk", CH375WDM.SYS, ,
+
+[Strings]
+ClassName        = "External interface"
+WinChipHead      = "WCH"
+CH375.DeviceDesc = "USB CH372/CH375"
+CH37XICP.DeviceDesc = "USB Module"
