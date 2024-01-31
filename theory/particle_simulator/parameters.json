@@ -1,0 +1,351 @@
+{
+ "k_x": {
+  "descrp": "Trap stiffness along x axis",
+  "tooltip": "k_x",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "k_y": {
+  "descrp": "Trap stiffness along y axis",
+  "tooltip": "k_y",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "k_z": {
+  "descrp": "Trap stiffness along z axis",
+  "tooltip": "k_z",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "xi_x": {
+  "descrp": "Duffing parameter along x axis",
+  "tooltip": "\\xi_x",
+  "kwargs": {
+   "real": true
+  }
+ },
+ "xi_y": {
+  "descrp": "Duffing parameter along y axis",
+  "tooltip": "\\xi_y",
+  "kwargs": {
+   "real": true
+  }
+ },
+ "xi_z": {
+  "descrp": "Duffing parameter along z axis",
+  "tooltip": "\\xi_z",
+  "kwargs": {
+   "real": true
+  }
+ },
+ "w_x0": {
+  "descrp": "1/e^2 radius of the beam in x direction",
+  "tooltip": "w_{x0}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "w_y0": {
+  "descrp": "1/e^2 radius of the beam in y direction",
+  "tooltip": "w_{y0}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "z_R": {
+  "descrp": "Rayleigh range",
+  "tooltip": "z_\\mathrm{R}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "lamda": {
+  "descrp": "Light wavelength",
+  "tooltip": "\\lambda",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "k": {
+  "descrp": "Wave number",
+  "tooltip": "k",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "omega": {
+  "descrp": "Light frequency",
+  "tooltip": "\\omega",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Omega_x0": {
+  "descrp": "Mechanical frequency along x direction",
+  "tooltip": "\\Omega_{x0}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Omega_y0": {
+  "descrp": "Mechanical frequency along y direction",
+  "tooltip": "\\Omega_{y0}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Omega_z0": {
+  "descrp": "Mechanical frequency along z direction",
+  "tooltip": "\\Omega_{z0}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "alpha_p": {
+  "descrp": "Real part of the polarizability",
+  "tooltip": "\\alpha'",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "E_0": {
+  "descrp": "Electric field amplitude",
+  "tooltip": "E_0",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "P": {
+  "descrp": "Power of light beam",
+  "tooltip": "P",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "c_0": {
+  "descrp": "Vacuum speed of light",
+  "tooltip": "c_0",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "eps_0": {
+  "descrp": "Vacuum permittivity",
+  "tooltip": "\\epsilon_0",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "m": {
+  "descrp": "Particle mass",
+  "tooltip": "m",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "N_A": {
+  "descrp": "Avogardro constant",
+  "tooltip": "N_\\mathrm{A}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "k_B": {
+  "descrp": "Boltzmann constant",
+  "tooltip": "k_\\mathrm{B}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "T": {
+  "descrp": "Bath temperature",
+  "tooltip": "T",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "M": {
+  "descrp": "Molar mass of surrounding medium",
+  "tooltip": "M",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "p_gas": {
+  "descrp": "Pressure of surrounding gas",
+  "tooltip": "p_\\mathrm{gas}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "gamma_x_gas": {
+  "descrp": "Damping due to surrounding gas along x direction",
+  "tooltip": "\\gamma_{\\mathrm{gas\\,}x}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "gamma_y_gas": {
+  "descrp": "Damping due to surrounding gas along y direction",
+  "tooltip": "\\gamma_{\\mathrm{gas\\,}y}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "gamma_z_gas": {
+  "descrp": "Damping due to surrounding gas along z direction",
+  "tooltip": "\\gamma_{\\mathrm{gas\\,}z}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Kn_x": {
+  "descrp": "Knudsen number along x direction",
+  "tooltip": "\\mathrm{Kn}_x",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Kn_y": {
+  "descrp": "Knudsen number along y direction",
+  "tooltip": "\\mathrm{Kn}_y",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "Kn_z": {
+  "descrp": "Knudsen number along z direction",
+  "tooltip": "\\mathrm{Kn}_z",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "r_x": {
+  "descrp": "Particle radius along x direction",
+  "tooltip": "r_x",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "r_y": {
+  "descrp": "Particle radius along y direction",
+  "tooltip": "r_y",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "r_z": {
+  "descrp": "Particle radius along z direction",
+  "tooltip": "r_z",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "V": {
+  "descrp": "Particle volume",
+  "tooltip": "V",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "eta": {
+  "descrp": "Viscosity of surrounding medium",
+  "tooltip": "\\eta",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "l": {
+  "descrp": "Mean free path of gas molecules",
+  "tooltip": "l",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "c_xk": {
+  "descrp": "Geometric constant along x direction",
+  "tooltip": "c_{xk}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "c_yk": {
+  "descrp": "Geometric constant along y direction",
+  "tooltip": "c_{yk}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "c_zk": {
+  "descrp": "Geometric constant along z direction",
+  "tooltip": "c_{zk}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "rho": {
+  "descrp": "Density of particle",
+  "tooltip": "\\rho",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "eps_p": {
+  "descrp": "Dielectric constant of particle",
+  "tooltip": "\\epsilon_\\mathrm{p}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ },
+ "eps_m": {
+  "descrp": "Dielectric constant of surrounding medium",
+  "tooltip": "\\epsilon_\\mathrm{m}",
+  "kwargs": {
+   "positive": true,
+   "real": true
+  }
+ }
+}

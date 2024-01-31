@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>metal_setup.png</file>
+    <file>Zeichnung.svg</file>
+    <file>bragg_setup.png</file>
+  </qresource>
+</RCC>
