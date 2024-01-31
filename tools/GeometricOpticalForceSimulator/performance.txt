@@ -1,0 +1,3 @@
+native: 263.01010942459106 s
+numpy (no numba): 1085.679521560669 s
+numpy (numba):

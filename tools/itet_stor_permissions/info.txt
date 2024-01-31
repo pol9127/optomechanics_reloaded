@@ -1,0 +1,11 @@
+Build by executing in a terminal:
+
+pyinstaller --add-data "editWidget.ui;." --add-data "login.ui;." --add-data "mainWindow.ui;." gui.py
+
+or
+
+pyinstaller --add-data "editWidget.ui:." --add-data "login.ui:." --add-data "mainWindow.ui:." gui.py
+
+Install pyinstaller using pip:
+
+pip install git+git://github.com/pyinstaller/pyinstaller@develop
